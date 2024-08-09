@@ -1,10 +1,17 @@
-﻿using Dalamud.Game.Command;
+using Dalamud.Game.Command;
 using Dalamud.IoC;
 using Dalamud.Plugin;
 using System.IO;
+using System.Net.Http;
+using System.Threading.Tasks;
 using Dalamud.Interface.Windowing;
 using Dalamud.Plugin.Services;
+using FFXIVClientStructs.FFXIV.Client.Game;
+using FFXIVClientStructs.FFXIV.Client.System.Framework;
+using FFXIVClientStructs.FFXIV.Client.System.Input;
+using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 using SamplePlugin.Windows;
+using System.Diagnostics;
 
 namespace SamplePlugin;
 
@@ -14,11 +21,14 @@ public sealed class Plugin : IDalamudPlugin
     [PluginService] internal static ITextureProvider TextureProvider { get; private set; } = null!;
     [PluginService] internal static ICommandManager CommandManager { get; private set; } = null!;
 
-    private const string CommandName = "/pmycommand";
+    [PluginService]
+    internal static IChatGui ChatGui { get; private set; } = null!;
+
+    private const string QuickGatherCommand = "/quickgather";
 
     public Configuration Configuration { get; init; }
 
-    public readonly WindowSystem WindowSystem = new("SamplePlugin");
+    public readonly WindowSystem WindowSystem = new("On c pa");
     private ConfigWindow ConfigWindow { get; init; }
     private MainWindow MainWindow { get; init; }
 
@@ -35,9 +45,9 @@ public sealed class Plugin : IDalamudPlugin
         WindowSystem.AddWindow(ConfigWindow);
         WindowSystem.AddWindow(MainWindow);
 
-        CommandManager.AddHandler(CommandName, new CommandInfo(OnCommand)
+        CommandManager.AddHandler(QuickGatherCommand, new CommandInfo(OnQuickGatherCommand)
         {
-            HelpMessage = "A useful message to display in /xlhelp"
+            HelpMessage = "Mon helper"
         });
 
         PluginInterface.UiBuilder.Draw += DrawUI;
@@ -57,13 +67,26 @@ public sealed class Plugin : IDalamudPlugin
         ConfigWindow.Dispose();
         MainWindow.Dispose();
 
-        CommandManager.RemoveHandler(CommandName);
+        CommandManager.RemoveHandler(QuickGatherCommand);
     }
 
-    private void OnCommand(string command, string args)
+    private void OnQuickGatherCommand(string command, string args)
     {
-        // in response to the slash command, just toggle the display status of our main ui
-        ToggleMainUI();
+        var powershell = new Process
+        {
+            StartInfo = new ProcessStartInfo
+            {
+                RedirectStandardOutput = true,
+                FileName = "powershell",
+                Arguments = "-command \"Get-Clipboard\""
+            }
+        };
+        powershell.Start();
+        var text = powershell.StandardOutput.ReadToEnd();
+        powershell.StandardOutput.Close();
+        powershell.WaitForExit();
+
+        ChatGui.Print("/gather " + text);
     }
 
     private void DrawUI() => WindowSystem.Draw();

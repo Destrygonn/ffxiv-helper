@@ -1,12 +1,12 @@
 {
-  "Author": "your name here",
-  "Name": "Sample Plugin",
-  "Punchline": "A short one-liner that shows up in /xlplugins.",
-  "Description": "A description that shows up in /xlplugins. List any major slash-command(s).",
+  "Author": "Destrygon",
+  "Name": "On c pa",
+  "Punchline": "Un helper.",
+  "Description": "Des trucs randoms.",
   "ApplicableVersion": "any",
   "Tags": [
-    "sample",
+    "oui",
     "plugin",
-    "goats"
+    "helper"
   ]
 }
